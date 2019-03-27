@@ -1,0 +1,100 @@
+# Alkhayuon, Ashwin, Jackson, Quinn, Wood
+# 3 box model for MOC	
+# Jan 2019
+# run using xppaut
+#
+# reduced to three boxes by setting SB and SS constant
+# 
+
+# parameters
+par H=0
+par gamma = 0.39
+
+# change 
+par DeltaKN=1
+par DeltaKS=1
+par DeltaKIP=1
+par Deltaeta=1
+
+# dynamic variables
+init SN=0.034912
+init ST=0.035435
+#init ST = 0.036
+
+# fixed 
+SS = 0.034427
+# fixed
+SB = 0.034538
+
+#
+VN = 0.3683e17 
+VT = 0.5418e17 
+VS = 0.6097e17 
+VIP = 1.4860e17 
+VB = 9.9250e17 
+
+Y = 3.15e7
+
+lambda = 2.79e7 
+#m^6kg^-1
+
+alpha = 0.12 
+#kg m^-3 C^-1
+
+beta = 790.0 
+#kg m^-3 
+ 
+TS = 7.919 
+#C
+
+TN = 6.679 
+#C
+
+C = 4.4735e16  
+#(total sum of V*S)
+ 
+ 
+#dimensionless
+
+eta = 74.492e6*Deltaeta 
+#mu  #deg s m^-3
+ 
+KN = 4.456e6*DeltaKN
+KS = 5.447e6*DeltaKS
+KIP = 96.817e6*DeltaKIP
+ 
+# Hosing variables
+FN = 0.384e6 + H*0.1311e6
+FT = -0.723e6 + H*0.6961e6
+FS = 1.078e6 - H*0.2626e6
+FIP = -0.738e6 - H*0.5646e6
+ 
+S0 = 0.035 
+# dimensionless
+ 
+q = lambda*(alpha*(TS-TN)+beta*(SN-SS))
+aq = abs(q)
+
+SIP = (C/VIP)-((VN/VIP)*SN+(VT/VIP)*ST+(VS/VIP)*SS+(VB/VIP)*SB)
+
+z1p = (Y/VN)*(q*(ST-SN)+KN*(ST-SN)-FN*S0)
+z2p = (Y/VT)*(q*(gamma*SS+(1-gamma)*SIP-ST)+KS*(SS-ST)+KN*(SN-ST)-FT*S0)
+z3p = (Y/VS)*(gamma*q*(SB-SS)+KIP*(SIP-SS)+KS*(ST-SS)+eta*(SB-SS)-FS*S0)
+z4p = (Y/VIP)*((1-gamma)*q*(SB-SIP)+KIP*(SS-SIP)-FIP*S0)
+ 
+z1n = (Y/VN)*(aq*(SB-SN)+KN*(ST-SN)-FN*S0)
+z2n = (Y/VT)*(aq*(SN-ST)+KS*(SS-ST)+KN*(SN-ST)-FT*S0)
+z3n = (Y/VS)*(gamma*aq*(ST-SS)+KIP*(SIP-SS)+KS*(ST-SS)+eta*(SB-SS)-FS*S0)
+z4n = (Y/VIP)*((1-gamma)*aq*(ST-SIP)+KIP*(SS-SIP)-FIP*S0)
+ 
+SN' = if(q>0)then(z1p)else(z1n)
+ST' = if(q>0)then(z2p)else(z2n)
+
+# monitor to ensure this stays small!
+aux ASSDT= z3p*(q>=0)+z3n*(q<0)
+aux ASIPDT = z4p*(q>=0)+z4n*(q<0)
+ 
+@ total=1000, dt=0.5
+@ ds=0.001, dsmin=1e-6, dsmax=0.01, epsu=1e-6, epsl=1e-7, epss=1e-6, parmin=-1, parmax=1
+done
+ 
